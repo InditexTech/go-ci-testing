@@ -1,0 +1,92 @@
+# SPDX-FileCopyrightText: 2026 INDUSTRIA DE DISEÑO TEXTIL S.A. (INDITEX S.A.)
+# SPDX-License-Identifier: Apache-2.0
+
+name: code-gomod-go-PR-verify
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: code-gomod-go-pr-verify-${{ github.repository }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  WORKING_DIRECTORY: ${{ vars.WORKING_DIRECTORY }}
+  # The project-owned verify command travels in the managed component descriptor,
+  # never in an Actions variable: the repo owns its build, governance owns only the
+  # envelope that invokes it.
+  COMPONENT_DESCRIPTOR: .github/inditextech-ci-go.json
+  ASDF_BRANCH_VERSION: '0.18.0'
+
+jobs:
+  verify:
+    name: Code / Verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out pull request head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Read governed tool versions
+        id: tool-versions
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Reject any .tool-versions line that is not a strict "<plugin> <version>" before asdf reads it; the Go toolchain is a project-owned pin the engine seeds once.
+          if grep -Evq '^[a-zA-Z0-9_-]+ [a-zA-Z0-9._+-]+$' .tool-versions; then
+            echo "::error title=Invalid tool-versions::${WORKING_DIRECTORY}/.tool-versions is malformed."
+            exit 1
+          fi
+          {
+            echo "tool_versions<<EOF"
+            cat .tool-versions
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Set up asdf-managed Go
+        uses: asdf-vm/actions/install@1902764435ca0dd2f3388eea723a4f92a4eb8302 # v4.0.0
+        with:
+          tool_versions: ${{ steps.tool-versions.outputs.tool_versions }}
+          asdf_version: ${{ env.ASDF_BRANCH_VERSION }}
+
+      - name: Resolve governed verify command
+        id: descriptor
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! -f "$COMPONENT_DESCRIPTOR" ]]; then
+            echo "::error title=Missing descriptor::${COMPONENT_DESCRIPTOR} not found."
+            exit 1
+          fi
+          # The descriptor is governance-owned and schema-validated; verify_command
+          # always resolves, but fail closed if it is somehow blank.
+          verify_command="$(jq -er '.verify_command // "make verify"' "$COMPONENT_DESCRIPTOR")"
+          if [[ -z "$verify_command" ]]; then
+            echo "::error title=Empty verify command::descriptor verify_command must not be blank."
+            exit 1
+          fi
+          {
+            echo "verify_command<<EOF"
+            echo "$verify_command"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Verify and test
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        shell: bash
+        env:
+          VERIFY_COMMAND: ${{ steps.descriptor.outputs.verify_command }}
+        run: |
+          set -euo pipefail
+          # The project owns its build; governance only invokes the governed
+          # verify_command inside the pinned working directory.
+          bash -c "$VERIFY_COMMAND"

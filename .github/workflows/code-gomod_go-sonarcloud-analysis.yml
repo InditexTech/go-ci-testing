@@ -1,0 +1,127 @@
+# SPDX-FileCopyrightText: 2026 INDUSTRIA DE DISEÑO TEXTIL S.A. (INDITEX S.A.)
+# SPDX-License-Identifier: Apache-2.0
+
+name: code-gomod-go-sonarcloud-analysis
+run-name: SonarCloud analysis on ${{ github.head_ref || github.ref_name }}
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main, main-*, develop, develop-*]
+  push:
+    branches: [main, main-*, develop, develop-*]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: code-gomod-go-sonarcloud-${{ github.repository }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  WORKING_DIRECTORY: ${{ vars.WORKING_DIRECTORY }}
+  ASDF_BRANCH_VERSION: '0.18.0'
+
+jobs:
+  analyze:
+    name: SonarCloud / Analyze
+    if: >-
+      vars.SONARCLOUD_ENABLED == 'true' &&
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) &&
+      (
+        (
+          vars.DEVELOPMENT_FLOW == 'trunk-based-development' &&
+          (
+            (github.event_name == 'workflow_dispatch' && (github.ref_name == 'main' || startsWith(github.ref_name, 'main-'))) ||
+            (github.event_name == 'pull_request' && (github.event.pull_request.base.ref == 'main' || startsWith(github.event.pull_request.base.ref, 'main-'))) ||
+            (github.event_name == 'push' && (github.ref_name == 'main' || startsWith(github.ref_name, 'main-')))
+          )
+        ) ||
+        (
+          vars.DEVELOPMENT_FLOW == 'git-flow' &&
+          (
+            (github.event_name == 'workflow_dispatch' && (github.ref_name == 'develop' || startsWith(github.ref_name, 'develop-'))) ||
+            (github.event_name == 'pull_request' && (github.event.pull_request.base.ref == 'develop' || startsWith(github.event.pull_request.base.ref, 'develop-'))) ||
+            (github.event_name == 'push' && (github.ref_name == 'develop' || startsWith(github.ref_name, 'develop-')))
+          )
+        )
+      )
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Resolve SonarCloud availability
+        id: sonar
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Advisory + graceful-skip: opt-in via SONARCLOUD_ENABLED, but a repo whose
+          # SONAR_TOKEN is not provisioned simply skips analysis instead of failing.
+          if [[ -z "${SONAR_TOKEN:-}" ]]; then
+            echo "::notice title=SonarCloud skipped::SONAR_TOKEN is not configured; skipping advisory analysis."
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check out source
+        if: steps.sonar.outputs.enabled == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Read governed tool versions
+        id: tool-versions
+        if: steps.sonar.outputs.enabled == 'true'
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Reject any .tool-versions line that is not a strict "<plugin> <version>" before asdf reads it.
+          if grep -Evq '^[a-zA-Z0-9_-]+ [a-zA-Z0-9._+-]+$' .tool-versions; then
+            echo "::error title=Invalid tool-versions::${WORKING_DIRECTORY}/.tool-versions is malformed."
+            exit 1
+          fi
+          {
+            echo "tool_versions<<EOF"
+            cat .tool-versions
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Set up asdf-managed Go
+        if: steps.sonar.outputs.enabled == 'true'
+        uses: asdf-vm/actions/install@1902764435ca0dd2f3388eea723a4f92a4eb8302 # v4.0.0
+        with:
+          tool_versions: ${{ steps.tool-versions.outputs.tool_versions }}
+          asdf_version: ${{ env.ASDF_BRANCH_VERSION }}
+
+      - name: Generate Go coverage profile
+        if: steps.sonar.outputs.enabled == 'true'
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Advisory coverage: emit a standard Go coverage profile for Sonar. A module
+          # without tests still gets a static analysis, so coverage generation never blocks.
+          go test -covermode=atomic -coverprofile=coverage.out ./... \
+            || echo "::warning title=Coverage unavailable::go test produced no coverage profile; Sonar will analyze without coverage."
+
+      - name: Run SonarCloud analysis
+        if: steps.sonar.outputs.enabled == 'true'
+        uses: SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f # v8.2.1
+        env:
+          SONAR_HOST_URL: https://sonarcloud.io
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >-
+            -Dsonar.organization=inditextech
+            -Dsonar.projectKey=InditexTech_${{ github.event.repository.name }}
+            -Dsonar.projectName=${{ github.event.repository.name }}
+            -Dsonar.sources=${{ env.WORKING_DIRECTORY }}
+            -Dsonar.tests=${{ env.WORKING_DIRECTORY }}
+            -Dsonar.test.inclusions=**/*_test.go
+            -Dsonar.exclusions=**/vendor/**,**/dist/**
+            -Dsonar.go.coverage.reportPaths=${{ env.WORKING_DIRECTORY }}/coverage.out

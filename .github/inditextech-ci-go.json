@@ -1,0 +1,7 @@
+{
+  "artifacts": "none",
+  "schema_version": 1,
+  "sonar": false,
+  "verify_command": "make verify",
+  "working_directory": "code"
+}
