@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `farewell` helper alongside `greeting`, to exercise the CI and release pipeline end-to-end.
+
 ### Changed
 
 ### Fixed

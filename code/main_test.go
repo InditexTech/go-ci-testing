@@ -10,3 +10,9 @@ func TestGreeting(t *testing.T) {
 		t.Fatal("greeting must not be empty")
 	}
 }
+
+func TestFarewell(t *testing.T) {
+	if farewell() == "" {
+		t.Fatal("farewell must not be empty")
+	}
+}
