@@ -9,6 +9,11 @@ func greeting() string {
 	return "Hello from go-ci-testing"
 }
 
+func farewell() string {
+	return "Goodbye from go-ci-testing"
+}
+
 func main() {
 	fmt.Println(greeting())
+	fmt.Println(farewell())
 }
