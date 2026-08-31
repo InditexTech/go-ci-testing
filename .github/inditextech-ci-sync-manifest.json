@@ -14,7 +14,7 @@
   "creation_year": 2026,
   "integrity": {
     "algorithm": "hmac-sha256",
-    "signature": "503899245679823dfa76afa5dc3c6956a0ab37ff0ba97afa77331439292e163e"
+    "signature": "492f04946b5b74f95617651ca82820e0cfe5fb832aa2d539a0d2ba0f5df4184b"
   },
   "managed_by": "InditexTech CI governance",
   "managed_paths": {
@@ -25,10 +25,10 @@
     ".github/PULL_REQUEST_TEMPLATE.md": "23a0b0ac79a9020ccac9c013582a01f86e2df2ae7f914673583b9a3368313041",
     ".github/inditextech-ci-go.json": "c5a13cb3cb30cd4ee13c434504a8b722432203e7ca3aac57394d5e3f6a1c2294",
     ".github/workflows/code-gomod_go-PR_verify.yml": "45ba03ef116a483d98acda8a89d7f0c67f78ed3c47c42fa90f585e31cd0efe86",
-    ".github/workflows/code-gomod_go-release-core.yml": "801d1210f2cecf4659f71643688298c1ca29934c0608c1780a5497f8b23b1269",
+    ".github/workflows/code-gomod_go-release-core.yml": "a42949519368c8d7f2c18a52ffdecb6fe2605f2e5ef9bf0e8ae865f5b85efe29",
     ".github/workflows/code-gomod_go-release.yml": "1e6f2943c8f0c249dbb8e20823dce954cff22c2f4c799811c80a3904f2d55965",
     ".github/workflows/code-gomod_go-sonarcloud-analysis.yml": "d5adaf39b7eef7a84a241d0d34961b8c531a9eb37d4b2b5e62c2f64f9b88a1bd",
-    ".github/workflows/code-release_preview.yml": "15b1caac917c9fd759641b19798e5e153e5924bf7bdca985debdfdb03354c7f3",
+    ".github/workflows/code-release_preview.yml": "7dd6015b229102308c8e3eaac8a0e39521f9737b060abade1ef1ed2ea979a7f7",
     ".github/workflows/codeql.yml": "e28bc387b90ccefda9fd7478caad4ed752fab165ef673c375747ed4a45a1fd7e",
     ".github/workflows/pr-verify.yml": "f52295fbfe81578c0a6459d8b384be569933ac78d32fff370932a8dec6943e46",
     ".github/workflows/push-verify.yml": "217097070d0fdef329eae1a7187806a4623d692ce467ca8f1f9a7f56dddb29ed",
@@ -42,6 +42,6 @@
   "schema_version": 2,
   "source_digests": {
     "base": "e8b9e62ba5265328428595029b85c9558b3342136b145d4d822672ffeed02f09",
-    "go": "5f73a324164469730cb0d902767e9ca28290761f34d0d0fa2113de5a653a5b8f"
+    "go": "6ba90a617e4026ecd23b01a6fd6ece6bee25db467974e9a59e6c8ce6b141fca6"
   }
 }

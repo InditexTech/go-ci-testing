@@ -242,6 +242,9 @@ jobs:
               '{version: $version, tag: $tag}' > "$records_file"
             releases="$(jq -cs . "$records_file")"
             echo "RELEASE_VERSION=$release_version" >> "$GITHUB_ENV"
+            # Export the keyword too: keep-a-changelog's `bump` takes the semver-inc
+            # keyword, not the concrete version (see the Bump step).
+            echo "RELEASE_BUMP=$release_bump" >> "$GITHUB_ENV"
           else
             # Resume: the CHANGELOG already carries the cut version at its topmost released heading (mirrors node/java reading version from the tree).
             release_version="$(grep -E -m1 '^## \[[0-9]+\.[0-9]+\.[0-9]+\]' CHANGELOG.md | sed -E 's/^## \[([0-9]+\.[0-9]+\.[0-9]+)\].*/\1/')"
@@ -271,15 +274,49 @@ jobs:
         uses: release-flow/keep-a-changelog-action@74931dec7ecdbfc8e38ac9ae7e8dd84c08db2f32 # v3.0.0
         with:
           command: bump
-          version: ${{ env.RELEASE_VERSION }}
+          # keep-a-changelog's `bump` accepts a semver-inc keyword (major/minor/
+          # patch/...), NOT a concrete version -- a concrete number aborts every
+          # release before the tag/push. Pass the keyword that drove the bump.
+          version: ${{ env.RELEASE_BUMP }}
           changelog: ${{ env.WORKING_DIRECTORY }}/CHANGELOG.md
           fail-on-empty-release-notes: false
-          # keep the re-seeded empty [Unreleased] section: this IS the next-dev
-          # re-seed, baked into the release commit (Go carries no in-tree version,
-          # so there is no separate next-dev commit).
+          # Keep the re-seeded empty [Unreleased] section (Go's next-dev re-seed).
           keep-unreleased-section: true
-          # vX.Y.Z tag scheme -> the compare links carry the v prefix.
           tag-prefix: "v"
+
+      - name: Reconcile CHANGELOG version with release
+        if: steps.release-plan.outputs.resume != 'true'
+        env:
+          RELEASE_VERSION: ${{ env.RELEASE_VERSION }}
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # A keyword bump derives the new number from the CHANGELOG's own history,
+          # which drifts from the authoritative tag version (greenfield/resume);
+          # re-anchor the entry just written to RELEASE_VERSION (no-op when in sync).
+          # Go tags are vX.Y.Z, so the link URLs carry a `v` the bare heading omits.
+          cl="CHANGELOG.md"
+          cl_ver="$(grep -m1 -E '^## \[[0-9]' "$cl" | sed -E 's/^## \[([^]]+)\].*/\1/')"
+          if [[ -z "$cl_ver" ]]; then
+            echo "::error title=CHANGELOG has no release entry::Expected a '## [X.Y.Z]' heading after the bump step."
+            exit 1
+          fi
+          if [[ "$cl_ver" != "$RELEASE_VERSION" ]]; then
+            echo "::notice title=CHANGELOG version reconciled::keep-a-changelog wrote ${cl_ver}; re-anchoring to release ${RELEASE_VERSION}."
+            cl_ver_re="${cl_ver//./\\.}"
+            # One portable pass (BSD + GNU sed; `sed -i -E` misparses on BSD) re-anchors
+            # (1) the bare release heading, (2) the Unreleased compare base, and (3) the
+            # new version's own link -- whose URLs carry Go's `v` prefix the heading omits.
+            tmp="$(mktemp)"
+            sed -E \
+              -e "s@^## \[${cl_ver_re}\]( - )@## [${RELEASE_VERSION}]\1@" \
+              -e "s@^(\[Unreleased\]: .*/compare/v)${cl_ver_re}(\.\.\.HEAD)@\1${RELEASE_VERSION}\2@" \
+              -e "s@^\[${cl_ver_re}\]: (.*/)(compare/[^ ]*\.\.\.|releases/tag/)v${cl_ver_re}@[${RELEASE_VERSION}]: \1\2v${RELEASE_VERSION}@" \
+              "$cl" > "$tmp"
+            cat "$tmp" > "$cl"
+            rm -f "$tmp"
+          fi
 
       - name: Commit, tag and push release
         if: steps.release-plan.outputs.resume != 'true'
