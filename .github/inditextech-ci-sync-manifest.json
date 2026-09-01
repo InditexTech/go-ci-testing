@@ -14,7 +14,7 @@
   "creation_year": 2026,
   "integrity": {
     "algorithm": "hmac-sha256",
-    "signature": "492f04946b5b74f95617651ca82820e0cfe5fb832aa2d539a0d2ba0f5df4184b"
+    "signature": "f2d84c0a7d2bf004ac9ee5698aaa8424cf072f22221973ba0d8dc8f40b6dc4e7"
   },
   "managed_by": "InditexTech CI governance",
   "managed_paths": {
@@ -24,12 +24,12 @@
     ".github/ISSUE_TEMPLATE/config.yml": "10e5dee4d49aa9e7792ceb4c986160c61f95da1ba00a64bf06e5f1f636cd17ec",
     ".github/PULL_REQUEST_TEMPLATE.md": "23a0b0ac79a9020ccac9c013582a01f86e2df2ae7f914673583b9a3368313041",
     ".github/inditextech-ci-go.json": "c5a13cb3cb30cd4ee13c434504a8b722432203e7ca3aac57394d5e3f6a1c2294",
-    ".github/workflows/code-gomod_go-PR_verify.yml": "45ba03ef116a483d98acda8a89d7f0c67f78ed3c47c42fa90f585e31cd0efe86",
-    ".github/workflows/code-gomod_go-release-core.yml": "a42949519368c8d7f2c18a52ffdecb6fe2605f2e5ef9bf0e8ae865f5b85efe29",
+    ".github/workflows/code-gomod_go-PR_verify.yml": "82eeec847ff67bbe7ed071cb0d5392841eb3061004bc0fa79c0f8ce48092bf7f",
+    ".github/workflows/code-gomod_go-release-core.yml": "e7736a6bb2ef2c74f3a817fd480ae070a46f4fe4cea7f73bc235e83a92a0c91b",
     ".github/workflows/code-gomod_go-release.yml": "1e6f2943c8f0c249dbb8e20823dce954cff22c2f4c799811c80a3904f2d55965",
-    ".github/workflows/code-gomod_go-sonarcloud-analysis.yml": "d5adaf39b7eef7a84a241d0d34961b8c531a9eb37d4b2b5e62c2f64f9b88a1bd",
+    ".github/workflows/code-gomod_go-sonarcloud-analysis.yml": "91073f8bf520b7e2e3ee1e9528ec3fa8bf9eb6426fc92bae99c5acf5c606ae15",
     ".github/workflows/code-release_preview.yml": "7dd6015b229102308c8e3eaac8a0e39521f9737b060abade1ef1ed2ea979a7f7",
-    ".github/workflows/codeql.yml": "e28bc387b90ccefda9fd7478caad4ed752fab165ef673c375747ed4a45a1fd7e",
+    ".github/workflows/codeql.yml": "0a4b017019b493858302dd0e9ab70e842eae755f36f98cdec1c02b7b92816d8e",
     ".github/workflows/pr-verify.yml": "f52295fbfe81578c0a6459d8b384be569933ac78d32fff370932a8dec6943e46",
     ".github/workflows/push-verify.yml": "217097070d0fdef329eae1a7187806a4623d692ce467ca8f1f9a7f56dddb29ed",
     "CODE_OF_CONDUCT.md": "ce1e7a8f68a7917d48c03f9f7aae5529367f73af0e959276e889d33ea1e8d4ab",
@@ -42,6 +42,6 @@
   "schema_version": 2,
   "source_digests": {
     "base": "e8b9e62ba5265328428595029b85c9558b3342136b145d4d822672ffeed02f09",
-    "go": "6ba90a617e4026ecd23b01a6fd6ece6bee25db467974e9a59e6c8ce6b141fca6"
+    "go": "d51ef0d935389d8dec34a76ac38fac75ce88a390587bd1c9c1156bbd367bb86a"
   }
 }
