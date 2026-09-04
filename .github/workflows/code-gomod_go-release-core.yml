@@ -30,6 +30,7 @@ permissions:
   contents: read
 
 env:
+  CI_GOVERNANCE_RELEASE_STAGING_REF: refs/ci-governance/release/${{ github.run_id }}-${{ github.run_attempt }}
   WORKING_DIRECTORY: ${{ vars.WORKING_DIRECTORY }}
   # The project owns its build/verify; the governed envelope only reads the
   # verify_command / artifact_command / artifacts contract from the descriptor.
@@ -50,6 +51,7 @@ jobs:
       (
         github.event_name == 'pull_request' &&
         github.event.pull_request.merged &&
+        github.event.pull_request.head.ref != 'automated/ci-governance-sync' &&
         !contains(join(github.event.pull_request.labels.*.name, ','), 'skip-release') &&
         (
           (vars.DEVELOPMENT_FLOW == 'trunk-based-development' && (github.event.pull_request.base.ref == 'main' || startsWith(github.event.pull_request.base.ref, 'main-'))) ||
@@ -66,6 +68,8 @@ jobs:
       release_commit: ${{ steps.release-metadata.outputs.release_commit }}
       releases: ${{ steps.release-metadata.outputs.releases }}
       artifacts: ${{ steps.release-metadata.outputs.artifacts }}
+      expected_ref: ${{ steps.release-plan.outputs.expected_ref }}
+      staging_ref: ${{ steps.release-metadata.outputs.staging_ref }}
     steps:
       - name: Resolve release context
         id: release-context
@@ -99,6 +103,19 @@ jobs:
             echo "release_labels=$release_labels"
             echo "release_ref=$release_ref"
           } >> "$GITHUB_OUTPUT"
+
+      - name: Enforce protected release branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASELINE_BRANCH: ${{ steps.release-context.outputs.baseline_branch }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          protected="$(gh api "repos/${GITHUB_REPOSITORY}/branches/${BASELINE_BRANCH}" --jq '.protected')"
+          if [[ "$protected" != "true" ]]; then
+            echo "::error title=Unprotected release branch::Releases require a protected baseline branch; '${BASELINE_BRANCH}' is not protected." >&2
+            exit 1
+          fi
 
       - name: Create GitHub App token
         id: app-token
@@ -230,6 +247,15 @@ jobs:
             printf '%s.%s.%s' "$major" "$minor" "$patch"
           }
 
+          semver_gt() {  # <X.Y.Z> <X.Y.Z> - true when the first argument is greater
+            local lmajor lminor lpatch rmajor rminor rpatch
+            IFS=. read -r lmajor lminor lpatch <<< "$1"
+            IFS=. read -r rmajor rminor rpatch <<< "$2"
+            (( lmajor != rmajor )) && return $(( lmajor > rmajor ? 0 : 1 ))
+            (( lminor != rminor )) && return $(( lminor > rminor ? 0 : 1 ))
+            (( lpatch > rpatch ))
+          }
+
           if [[ "$resume" == "false" ]]; then
             # release-type label drives the bump; trunk defaults to minor, git-flow requires the label.
             case ",$RELEASE_LABELS," in
@@ -248,15 +274,14 @@ jobs:
                 ;;
             esac
 
-            # Current version is the latest strict vX.Y.Z tag (v0.0.0 when none); Go has no in-tree version, distribution IS the tag.
+            # Baseline is the highest released semver, reading both vX.Y.Z and legacy bare X.Y.Z tags; Go has no in-tree version, distribution IS the tag.
             current_version="0.0.0"
             while IFS= read -r candidate; do
               stripped="${candidate#v}"
-              if [[ "$stripped" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              if [[ "$stripped" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && semver_gt "$stripped" "$current_version"; then
                 current_version="$stripped"
-                break
               fi
-            done < <(git tag --list 'v*' --sort=-v:refname)
+            done < <(git tag --list 'v[0-9]*' '[0-9]*')
 
             release_version="$(bump_semver "$current_version" "$release_bump")"
             tag="v${release_version}"
@@ -346,7 +371,7 @@ jobs:
             rm -f "$tmp"
           fi
 
-      - name: Commit, tag and push release
+      - name: Commit and stage release
         if: steps.release-plan.outputs.resume != 'true'
         id: release-commit
         env:
@@ -368,14 +393,10 @@ jobs:
           git config user.email "${APP_SLUG}[bot]@users.noreply.github.com"
           git commit -m "[go-release] Prepare release"
 
-          # App-bot annotated tag; no GPG git-signing -- Go's supply-chain trust is
-          # the immutable tag on protected main plus provenance at the source.
-          tag="$(jq -r '.[0].tag' <<< "$RELEASES")"
-          version="$(jq -r '.[0].version' <<< "$RELEASES")"
-          git check-ref-format "refs/tags/$tag"
-          git tag -a "$tag" -m "Release $version"
+          git check-ref-format "refs/tags/$(jq -r '.[0].tag' <<< "$RELEASES")"
 
-          git push --atomic origin "HEAD:$EXPECTED_REF" "refs/tags/$tag"
+          # Stage the commit on a non-branch ref: build needs it fetchable, main must not move yet.
+          git push --atomic --force origin "HEAD:$CI_GOVERNANCE_RELEASE_STAGING_REF"
 
       - name: Publish release metadata
         id: release-metadata
@@ -389,6 +410,7 @@ jobs:
           {
             echo "release_commit=$(git -C "$GITHUB_WORKSPACE" rev-parse HEAD)"
             echo "artifacts=$artifacts"
+            echo "staging_ref=$CI_GOVERNANCE_RELEASE_STAGING_REF"
             echo "releases<<EOF"
             printf '%s\n' "$RELEASES"
             echo "EOF"
@@ -488,14 +510,9 @@ jobs:
           retention-days: 14
 
   finalize-release:
-    name: Finalize release (sync PR)
+    name: Finalize release (promote + sync PR)
     needs: [prepare-release, build-distributions]
-    # Trunk-based is the default and needs no finalize; the sync-to-develop PR is git-flow only.
-    if: >-
-      always() &&
-      needs.prepare-release.result == 'success' &&
-      (needs.build-distributions.result == 'success' || needs.build-distributions.result == 'skipped') &&
-      vars.DEVELOPMENT_FLOW == 'git-flow'
+    if: "!cancelled() && needs.prepare-release.result == 'success'"
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
@@ -518,7 +535,52 @@ jobs:
           ref: ${{ github.event.pull_request.base.ref || github.ref_name }}
           token: ${{ steps.app-token.outputs.token }}
 
+      - name: Promote the release to the default branch
+        id: promote
+        if: needs.build-distributions.result == 'success' || needs.build-distributions.result == 'skipped'
+        env:
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+          EXPECTED_REF: ${{ needs.prepare-release.outputs.expected_ref }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          RELEASES: ${{ needs.prepare-release.outputs.releases }}
+          RELEASE_COMMIT: ${{ needs.prepare-release.outputs.release_commit }}
+          STAGING_REF: ${{ needs.prepare-release.outputs.staging_ref }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh auth setup-git
+          git config user.name "${APP_SLUG}[bot]"
+          git config user.email "${APP_SLUG}[bot]@users.noreply.github.com"
+
+          git fetch --no-tags origin "+${STAGING_REF}:refs/ci-governance/staged" 2>/dev/null || true
+          if [[ "$(git ls-remote origin "$EXPECTED_REF" | cut -f1)" == "$RELEASE_COMMIT" ]]; then
+            echo "::notice title=Promotion skipped::$EXPECTED_REF already points at the release commit."
+            git checkout --force --detach "$RELEASE_COMMIT"
+            exit 0
+          fi
+
+          if [[ "$(git rev-parse --verify --quiet refs/ci-governance/staged || true)" != "$RELEASE_COMMIT" ]]; then
+            echo "::error title=Release staging mismatch::$STAGING_REF does not point at the release commit."
+            exit 1
+          fi
+          git checkout --force --detach "$RELEASE_COMMIT"
+
+          # App-bot annotated tag; no GPG git-signing -- Go's supply-chain trust is
+          # the immutable tag on protected main plus provenance at the source.
+          tag="$(jq -r '.[0].tag' <<< "$RELEASES")"
+          version="$(jq -r '.[0].version' <<< "$RELEASES")"
+          git check-ref-format "refs/tags/$tag"
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
+            echo "::error title=Tag conflict::$tag already exists."
+            exit 1
+          fi
+          git tag -a "$tag" -m "Release $version"
+
+          # Not forced: a branch that moved during the build fails closed with nothing published.
+          git push --atomic origin "${RELEASE_COMMIT}:${EXPECTED_REF}" "refs/tags/$tag"
+
       - name: Open sync-to-develop pull request
+        if: steps.promote.outcome == 'success' && vars.DEVELOPMENT_FLOW == 'git-flow'
         env:
           APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
           BASELINE_BRANCH: ${{ github.event.pull_request.base.ref || github.ref_name }}
@@ -547,3 +609,17 @@ jobs:
               --title "Sync release $version to $develop_branch" \
               --body "**Automated pull request** syncing the release cut on \`$BASELINE_BRANCH\` back into \`$develop_branch\`."
           fi
+
+      - name: Discard the release staging ref
+        if: always()
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          STAGING_REF: ${{ needs.prepare-release.outputs.staging_ref }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${STAGING_REF:-}" ]]; then
+            exit 0
+          fi
+          gh auth setup-git
+          git push origin ":${STAGING_REF}" || true
