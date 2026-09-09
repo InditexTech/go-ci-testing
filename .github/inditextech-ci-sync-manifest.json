@@ -14,7 +14,7 @@
   "creation_year": 2026,
   "integrity": {
     "algorithm": "hmac-sha256",
-    "signature": "615de95e54733a806f5727d29d78a7ab8ed33e3f35a24f0a927f86961db3cfba"
+    "signature": "3d7db2e5703298ed6fc233c513fbf333235e01694af4ce717ea8a19b76f89fd5"
   },
   "managed_by": "InditexTech CI governance",
   "managed_paths": {
@@ -31,7 +31,8 @@
     ".github/workflows/code-release_preview.yml": "7dd6015b229102308c8e3eaac8a0e39521f9737b060abade1ef1ed2ea979a7f7",
     ".github/workflows/codeql.yml": "a7ff83d8f89a5e02bfd729939a51a0a512a0f2f3fa7ddf9dc688dfdf41937748",
     ".github/workflows/pr-verify.yml": "f52295fbfe81578c0a6459d8b384be569933ac78d32fff370932a8dec6943e46",
-    ".github/workflows/push-verify.yml": "217097070d0fdef329eae1a7187806a4623d692ce467ca8f1f9a7f56dddb29ed",
+    ".github/workflows/push-verify.yml": "fd700ba0ee23fdee9cd7ecf23ad386247f4b621b73cc1946f9ef0eda4ea07086",
+    ".github/workflows/scorecard-analysis.yml": "5bd6da647f708cced5d33411cc27aac7f7ee2be06ae541defea677d70fe80481",
     "CODE_OF_CONDUCT.md": "ce1e7a8f68a7917d48c03f9f7aae5529367f73af0e959276e889d33ea1e8d4ab",
     "CONTRIBUTING.md": "4e1264ca54a45df44b362c7533f0eba912bfa77b6f561121ae9e5e9d6aa00df3",
     "SECURITY.md": "0ee7a3356bc3a1c7649e3b7a6a9012b0608011be2b1ff8d106ad02c8950bab25",
@@ -46,7 +47,7 @@
   "retained_paths": {},
   "schema_version": 2,
   "source_digests": {
-    "base": "e8b9e62ba5265328428595029b85c9558b3342136b145d4d822672ffeed02f09",
+    "base": "adea55cd4e550d94848b404c36f5678ab4969eacb85004b88e2471c73630947a",
     "go": "998aef51a01f7ceeaf2ed9625ca9e82ca998e533da342efad788a4035804dff1"
   }
 }
