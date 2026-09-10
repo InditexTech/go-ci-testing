@@ -23,6 +23,7 @@ on:
           - release-type/patch
 
 permissions:
+  actions: read
   contents: read
 
 concurrency:
