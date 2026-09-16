@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Enable scheduled dependency updates for the canary and its workflows.
+- Add native Go fuzz coverage for message construction.
 
 ## [0.3.3] - 2026-09-16
 

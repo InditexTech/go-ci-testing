@@ -6,11 +6,15 @@ package main
 import "fmt"
 
 func greeting() string {
-	return "Hello from go-ci-testing"
+	return message("Hello")
 }
 
 func farewell() string {
-	return "Goodbye from go-ci-testing"
+	return message("Goodbye")
+}
+
+func message(prefix string) string {
+	return prefix + " from go-ci-testing"
 }
 
 func main() {

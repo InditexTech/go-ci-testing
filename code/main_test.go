@@ -16,3 +16,16 @@ func TestFarewell(t *testing.T) {
 		t.Fatal("farewell must not be empty")
 	}
 }
+
+func FuzzMessage(f *testing.F) {
+	f.Add("Hello")
+	f.Add("Goodbye")
+	f.Add("")
+
+	f.Fuzz(func(t *testing.T, prefix string) {
+		got := message(prefix)
+		if len(got) != len(prefix)+len(" from go-ci-testing") {
+			t.Fatalf("message(%q) returned unexpected length: %q", prefix, got)
+		}
+	})
+}
