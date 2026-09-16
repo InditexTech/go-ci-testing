@@ -1,0 +1,18 @@
+code/CHANGELOG.md
+  h_e3804906c674bd 21
+code/main.go
+  h_e3804906c674bd 9,13-17
+code/main_test.go
+  h_e3804906c674bd 19-31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6db0178a71f7b06f64e25e077e6985d2cc727aa1",
+  "prompts": {},
+  "humans": {
+    "h_e3804906c674bd": {
+      "author": "Ivan Alvarez Sabin <ivanasabi@ext.inditex.com>"
+    }
+  }
+}
