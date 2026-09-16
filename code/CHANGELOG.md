@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-16
+
 ### Changed
 
 - Enable scheduled dependency updates for the canary and its workflows.
@@ -37,7 +39,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-[Unreleased]: https://github.com/InditexTech/go-ci-testing/compare/v0.3.3...HEAD
+[Unreleased]: https://github.com/InditexTech/go-ci-testing/compare/v0.4.0...HEAD
+
+[0.4.0]: https://github.com/InditexTech/go-ci-testing/compare/v0.3.3...v0.4.0
 
 [0.3.3]: https://github.com/InditexTech/go-ci-testing/compare/v0.3.2...v0.3.3
 
