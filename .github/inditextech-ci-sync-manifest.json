@@ -14,7 +14,7 @@
   "creation_year": 2026,
   "integrity": {
     "algorithm": "hmac-sha256",
-    "signature": "31d7d1a5cb33d9b295fedeb9248823f41bba8cfafbabff11420e1f9852efaed0"
+    "signature": "6eb9458d09212f43393787e4c08991298d9152edfad90eae6ca54a4d1a221bc3"
   },
   "managed_by": "InditexTech CI governance",
   "managed_paths": {
@@ -25,10 +25,10 @@
     ".github/PULL_REQUEST_TEMPLATE.md": "23a0b0ac79a9020ccac9c013582a01f86e2df2ae7f914673583b9a3368313041",
     ".github/inditextech-ci-go.json": "c5a13cb3cb30cd4ee13c434504a8b722432203e7ca3aac57394d5e3f6a1c2294",
     ".github/workflows/code-gomod_go-PR_verify.yml": "76aefd67d70c17d44252cb2854191c6530cfc176f49d3a481a65eac2f4989fb9",
-    ".github/workflows/code-gomod_go-release-core.yml": "5eb3b8c7b5d09f9ad1b5d844b58bd0de877de1f13cd9e3dc2da5d6af0b793b07",
-    ".github/workflows/code-gomod_go-release.yml": "d2d6babc6d37f7d85eb12051d7ab05d0731471d8fea77a437eb51660df08135b",
+    ".github/workflows/code-gomod_go-release-core.yml": "aabedee38e13939a00b690e1ff2c3f4c2990fdc5b70ee2beb0edd775bf7de552",
+    ".github/workflows/code-gomod_go-release.yml": "a7558ce46703a186fcbfd4aa8e631279673155342fd14cd577519f5bcd9f9127",
     ".github/workflows/code-gomod_go-sonarcloud-analysis.yml": "fcb5c72a4ae59a3b429420b1e15eda5c4c0cb4a0aa89c3f4f99eb2e3198dcaca",
-    ".github/workflows/code-release_preview.yml": "5bb379d87f946c3e5cca829b3d3a3071188cc045dd6ebe514732c06662f91181",
+    ".github/workflows/code-release_preview.yml": "074adc9b096cde6479657f24cf8b9ce3458ba2f7daa6a6e15ff065941f17c886",
     ".github/workflows/codeql.yml": "cdd995b56f89f38fbe2cdfd2701e8e6b1d632710da4d9768e8afdf1225a9454b",
     ".github/workflows/pr-verify.yml": "dfcff10f7b2ff38a112ea4051e79462f4f2c6ad1a82035db3145327e79a34fbb",
     ".github/workflows/push-verify.yml": "49e6e9c6a7015ea59a2bc831982b2fc4bfd1d5721302f6041170b4a15b7d56e1",
@@ -48,6 +48,6 @@
   "schema_version": 2,
   "source_digests": {
     "base": "047b72645284d5d76802113f644c789e402fc8dde3466a52dda5b522ec5bfa76",
-    "go": "31367912deed08276e552542d3f117d526d874c4c30206f99c5266ae465aae8e"
+    "go": "60e3d69e263b3e58fb3e22255ca750f8aca138d9f0f07cb69b71437e7d25e4cc"
   }
 }
