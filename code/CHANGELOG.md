@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- CI: stop dependabot from editing governed workflows (prevents managed-file drift freeze).
+
 ## [0.9.0] - 2026-09-22
 
 ## [0.8.0] - 2026-09-22
