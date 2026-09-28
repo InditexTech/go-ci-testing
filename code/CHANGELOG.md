@@ -13,7 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-09-28
+
 ### Changed
+
 - CI: stop dependabot from editing governed workflows (prevents managed-file drift freeze).
 
 ## [0.9.0] - 2026-09-22
@@ -57,7 +60,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-[Unreleased]: https://github.com/InditexTech/go-ci-testing/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/InditexTech/go-ci-testing/compare/v0.10.0...HEAD
+
+[0.10.0]: https://github.com/InditexTech/go-ci-testing/compare/v0.9.0...v0.10.0
 
 [0.9.0]: https://github.com/InditexTech/go-ci-testing/compare/v0.8.0...v0.9.0
 
