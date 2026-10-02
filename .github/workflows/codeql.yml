@@ -22,6 +22,7 @@ concurrency:
 
 env:
   WORKING_DIRECTORY: ${{ vars.WORKING_DIRECTORY }}
+  COMPONENT_DESCRIPTOR: .github/inditextech-ci-go.json
   ASDF_BRANCH_VERSION: '0.18.0'
 
 jobs:
@@ -96,6 +97,28 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Resolve governed working directory
+        if: matrix.language == 'go'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! -f "$COMPONENT_DESCRIPTOR" ]]; then
+            echo "::error title=Missing descriptor::${COMPONENT_DESCRIPTOR} not found."
+            exit 1
+          fi
+          workdir="${WORKING_DIRECTORY:-$(jq -r '.working_directory // empty' "$COMPONENT_DESCRIPTOR")}"
+          case "$workdir" in
+            ""|/*|..|../*|*/..|*/../*)
+              echo "::error title=Invalid working directory::WORKING_DIRECTORY must be a non-empty relative repository path." >&2
+              exit 1
+              ;;
+          esac
+          if [[ ! -d "$workdir" ]]; then
+            echo "::error title=Missing working directory::'${workdir}' is not a directory in this checkout." >&2
+            exit 1
+          fi
+          echo "WORKING_DIRECTORY=${workdir}" >> "$GITHUB_ENV"
+
       - name: Read governed tool versions
         id: tool-versions
         if: matrix.language == 'go'
@@ -144,12 +167,12 @@ jobs:
           asdf_version: ${{ env.ASDF_BRANCH_VERSION }}
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@1c5b675653bb5c22dbe9b12b556ec555138e09fd # v4
+        uses: github/codeql-action/init@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4
         with:
           build-mode: ${{ matrix.build-mode }}
           languages: ${{ matrix.language }}
 
       - name: Perform CodeQL analysis
-        uses: github/codeql-action/analyze@1c5b675653bb5c22dbe9b12b556ec555138e09fd # v4
+        uses: github/codeql-action/analyze@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4
         with:
           category: /language:${{ matrix.language }}
