@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Release acceptance: the release version is computed from the reachable `vX.Y.Z` tags by the shared release-version action.
+
 ## [0.10.1] - 2026-10-01
 
 ## [0.10.0] - 2026-09-28
