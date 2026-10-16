@@ -1,0 +1,32 @@
+.github/dependabot.yml
+  h_e3804906c674bd 1-9
+.github/inditextech-ci-sync-manifest.json
+  h_e3804906c674bd 17,27-29,31-34,50-51
+.github/workflows/code-gomod_go-PR_verify.yml
+  h_e3804906c674bd 35-55
+.github/workflows/code-gomod_go-release-core.yml
+  h_e3804906c674bd 33-38,52-53,65,204-205,244,246-260,276,278-282,284-346,357,374-375,419-425,516-517,677-683,719
+.github/workflows/code-gomod_go-release.yml
+  h_e3804906c674bd 36-38,44-45,50-54
+.github/workflows/code-release_preview.yml
+  h_e3804906c674bd 64-65,103-159,165-168
+.github/workflows/codeql.yml
+  h_e3804906c674bd 25,100-121
+.github/workflows/pr-verify.yml
+  h_e3804906c674bd 31
+.github/workflows/push-verify.yml
+  h_e3804906c674bd 32
+code/CHANGELOG.md
+  h_e3804906c674bd 16-19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "27eea3b60a49dbd82b527774a72c5ec969867a6f",
+  "prompts": {},
+  "humans": {
+    "h_e3804906c674bd": {
+      "author": "Ivan Alvarez Sabin <ivanasabi@ext.inditex.com>"
+    }
+  }
+}
