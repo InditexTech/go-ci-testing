@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Release acceptance: the release version is computed from the reachable `vX.Y.Z` tags by the shared release-version action.
+- Release acceptance: the Release Preview computes on the merge of the pull request into its base.
 
 ## [0.10.1] - 2026-10-01
 
